@@ -131,7 +131,6 @@ export class RouterResponseController {
     stream.pipe(response, {
       additionalHeaders: options?.additionalHeaders,
       statusCode,
-      end: false,
     });
 
     return new Promise<void>((resolve, reject) => {
@@ -192,7 +191,6 @@ export class RouterResponseController {
             if (!stream.writableEnded) {
               stream.end();
             }
-            response.end();
             resolve();
           },
         });

@@ -132,4 +132,39 @@ describe('Sse (Fastify Application)', () => {
       );
     });
   });
+
+  describe('backpressure', () => {
+    beforeEach(async () => {
+      const moduleFixture = await Test.createTestingModule({
+        imports: [AppModule],
+      }).compile();
+
+      app = moduleFixture.createNestApplication<NestFastifyApplication>(
+        new FastifyAdapter({
+          forceCloseConnections: true,
+        }),
+      );
+
+      await app.listen(0);
+    });
+
+    afterEach(async () => {
+      await app.close();
+    });
+
+    it('should deliver all events when bursting large payloads', async () => {
+      const url = await app.getUrl();
+      const n = 50;
+      const size = 65536;
+
+      const response = await fetch(`${url}/sse/burst?n=${n}&size=${size}`);
+      const body = await response.text();
+
+      const dataLines = body
+        .split('\n')
+        .filter(line => line.startsWith('data: '));
+
+      expect(dataLines).to.have.lengthOf(n);
+    });
+  });
 });
